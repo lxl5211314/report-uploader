@@ -3,8 +3,21 @@ import tempfile
 from pathlib import Path
 
 _TMP = Path(tempfile.mkdtemp(prefix="reporttool_test_"))
+
+
+def _mysql_password() -> str:
+    if pw := os.getenv("MYSQL_PASSWORD"):
+        return pw
+    env_file = Path(__file__).resolve().parents[1] / ".env"
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            if line.strip().startswith("MYSQL_PASSWORD="):
+                return line.split("=", 1)[1].strip()
+    return ""
+
+
 os.environ["DATABASE_URL"] = (
-    "mysql+pymysql://root:123456@127.0.0.1:3306/report_tool_test"
+    f"mysql+pymysql://root:{_mysql_password()}@127.0.0.1:3306/report_tool_test"
 )
 os.environ["UPLOAD_DIR"] = str(_TMP / "uploads")
 os.environ["EXPORT_DIR"] = str(_TMP / "exports")
